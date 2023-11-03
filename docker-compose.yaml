@@ -1,0 +1,36 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:alpine
+    networks:
+      - main
+    ports:
+      - '5432:5432'
+    restart: always
+    environment:
+      - POSTGRES_DB=repica
+      - POSTGRES_USER=repica_admin
+      - POSTGRES_PASSWORD=repica_admin.1234
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    build: .
+
+  app:
+    build: .
+    command: sh -c "python manage.py migrate && gunicorn repica.wsgi -b 0.0.0.0:8000"
+    container_name: app
+    volumes:
+      - .:/src/
+    depends_on:
+      - postgres
+    expose:
+      - '8000'
+    networks:
+      - main
+
+
+networks:
+  main:
+
+volumes:
+  postgres_data:
